@@ -1,8 +1,7 @@
 use crate::fork::spawn_fork;
-use anvil_core::eth::transaction::EthTransactionRequest;
-use anyhow::{anyhow, Result};
-use ethers::types::{Address, Bytes, TransactionReceipt, U256};
-use rocket::serde::Deserialize;
+use anyhow::Result;
+use ethers::types::{Address, Bytes, U256};
+use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug)]
 #[serde(crate = "rocket::serde")]
@@ -13,27 +12,24 @@ pub struct Transaction {
     pub value: U256,
 }
 
-pub async fn execute(
-    rpc_url: &str,
-    transactions: Vec<Transaction>,
-) -> Result<Vec<TransactionReceipt>> {
-    let backend = spawn_fork(rpc_url).await?;
-    let mut results: Vec<TransactionReceipt> = Vec::new();
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct GasEstimate {
+    pub gas: u64,
+    pub reverted: bool,
+}
+
+pub async fn execute(rpc_url: &str, transactions: Vec<Transaction>) -> Result<Vec<GasEstimate>> {
+    let mut backend = spawn_fork(rpc_url).await;
+    let mut results: Vec<GasEstimate> = Vec::new();
     for tx in transactions {
-        let request = EthTransactionRequest {
-            from: Some(tx.from),
-            to: Some(tx.to),
-            data: Some(tx.data.clone()),
-            value: Some(tx.value),
-            ..Default::default()
-        };
-        let hash = backend.eth_send_unsigned_transaction(request).await?;
-        backend.mine_one().await;
         let receipt = backend
-            .transaction_receipt(hash)
-            .await?
-            .ok_or_else(|| anyhow!("Transaction not found"))?;
-        results.push(receipt);
+            .call_raw_committing(tx.from, tx.to, tx.data.0, tx.value)
+            .map_err(|_| anyhow::anyhow!("Failed to call"))?;
+        results.push(GasEstimate {
+            gas: receipt.gas,
+            reverted: receipt.reverted,
+        });
     }
     Ok(results)
 }

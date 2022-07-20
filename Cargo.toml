@@ -6,11 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anvil = { git = "https://github.com/foundry-rs/foundry", version = "0.1.0" }
-anvil-core = { git = "https://github.com/foundry-rs/foundry", version = "0.1.0" }
 anyhow = "1.0.58"
 ethers = { git = "https://github.com/gakonst/ethers-rs", features = ["ws"] }
 forge = { git = "https://github.com/foundry-rs/foundry", version = "0.2.0" }
+foundry-common = { git = "https://github.com/foundry-rs/foundry", version = "0.1.0" }
+foundry-config = { git = "https://github.com/foundry-rs/foundry", version = "0.2.0" }
 foundry-evm = { git = "https://github.com/foundry-rs/foundry", version = "0.2.0" }
 futures = "0.3.21"
 hex = "0.4.3"

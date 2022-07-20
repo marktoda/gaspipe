@@ -35,4 +35,4 @@ $ curl -X POST -H "content-type: application/json" localhost:8000/estimate -d '
 
 # Future Improvements
 - [ ] Add an RPC eth_estimateGas style endpoint for simpler migration
-- [ ] Improve latency.. I think we can use a lighter version of the foundry fork node
+- [ ] Improve latency
