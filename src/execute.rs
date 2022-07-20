@@ -32,7 +32,7 @@ pub async fn execute(
         let receipt = backend
             .transaction_receipt(hash)
             .await?
-            .ok_or(anyhow!("Transaction not found"))?;
+            .ok_or_else(|| anyhow!("Transaction not found"))?;
         results.push(receipt);
     }
     Ok(results)
