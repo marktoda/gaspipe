@@ -3,7 +3,7 @@
 extern crate rocket;
 use ethers::types::U256;
 use rocket::{
-    serde::{json::Json, Deserialize, Serialize},
+    serde::{json::Json, Deserialize},
     State,
 };
 use structopt::StructOpt;
@@ -12,7 +12,7 @@ mod opt;
 use opt::Opt;
 mod execute;
 mod fork;
-use execute::{execute, Transaction};
+use execute::{execute, GasEstimate, Transaction};
 
 #[launch]
 fn rocket() -> _ {
@@ -27,13 +27,6 @@ struct RequestTransaction {
     to: String,
     data: String,
     value: String,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-#[serde(crate = "rocket::serde")]
-pub struct GasEstimate {
-    pub gas: u64,
-    pub reverted: bool,
 }
 
 impl RequestTransaction {
@@ -64,20 +57,14 @@ async fn estimate(
                 .collect::<Vec<Transaction>>(),
         )
         .await
-        .expect("Unable to execute transactions")
-        .into_iter()
-        .map(|r| GasEstimate {
-            gas: r.gas_used.unwrap_or_default().as_u64(),
-            reverted: r.status.unwrap_or_default().as_u64() == 0,
-        })
-        .collect::<Vec<GasEstimate>>(),
+        .expect("Unable to execute transactions"),
     )
 }
 
 #[cfg(test)]
 mod test {
     use super::rocket;
-    use crate::GasEstimate;
+    use crate::execute::GasEstimate;
     use rocket::http::{ContentType, Status};
     use rocket::local::blocking::Client;
     use rocket::serde::json;
@@ -136,7 +123,6 @@ mod test {
 
         let data: Vec<GasEstimate> =
             json::from_str(response.into_string().unwrap().as_str()).unwrap();
-        println!("{:?}", data);
         assert_eq!(data.len(), 1);
         assert!(!data[0].reverted);
         assert!(data[0].gas > 21000);
@@ -196,7 +182,6 @@ mod test {
 
         let data: Vec<GasEstimate> =
             json::from_str(response.into_string().unwrap().as_str()).unwrap();
-        println!("{:?}", data);
         assert_eq!(data.len(), 2);
         assert!(!data[0].reverted);
         assert!(!data[1].reverted);
