@@ -1,5 +1,5 @@
 use crate::fork::spawn_fork;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use ethers::types::{Address, Bytes, U256};
 use rocket::serde::{Deserialize, Serialize};
 
@@ -21,15 +21,16 @@ pub struct GasEstimate {
 
 pub async fn execute(rpc_url: &str, transactions: Vec<Transaction>) -> Result<Vec<GasEstimate>> {
     let mut backend = spawn_fork(rpc_url).await;
-    let mut results: Vec<GasEstimate> = Vec::new();
-    for tx in transactions {
-        let receipt = backend
-            .call_raw_committing(tx.from, tx.to, tx.data.0, tx.value)
-            .map_err(|_| anyhow::anyhow!("Failed to call"))?;
-        results.push(GasEstimate {
-            gas: receipt.gas,
-            reverted: receipt.reverted,
-        });
-    }
-    Ok(results)
+    transactions
+        .iter()
+        .map(|tx| {
+            let receipt = backend
+                .call_raw_committing(tx.from, tx.to, tx.data.clone().0, tx.value)
+                .map_err(|e| anyhow!("Call failed: {}", e))?;
+            Ok(GasEstimate {
+                gas: receipt.gas,
+                reverted: receipt.reverted,
+            })
+        })
+        .collect()
 }

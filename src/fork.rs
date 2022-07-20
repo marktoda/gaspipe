@@ -29,7 +29,7 @@ pub async fn spawn_fork(rpc_url: &str) -> Executor {
         .with_config(env)
         .with_spec(SpecId::LONDON)
         .with_gas_limit(U256::from_dec_str("30000000").unwrap())
-        .set_tracing(true)
-        .set_debugger(true)
+        .set_tracing(false)
+        .set_debugger(false)
         .build(db)
 }
