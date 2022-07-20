@@ -60,9 +60,9 @@ pub async fn spawn_fork(rpc_url: &str) -> Result<EthApi> {
         Arc::new(vec![dev_signer]),
         fee_history_cache,
         1,
-        miner.clone(),
+        miner,
         Default::default(),
-        filters.clone(),
+        filters,
         transaction_order,
     ))
 }
@@ -97,7 +97,7 @@ async fn setup_node(mut config: NodeConfig) -> Result<mem::Backend> {
     let eth_rpc_url = config
         .eth_rpc_url
         .clone()
-        .ok_or(anyhow!("eth_rpc_url is required"))?;
+        .ok_or_else(|| anyhow!("eth_rpc_url is required"))?;
     let provider = Arc::new(Provider::<RetryClient<Http>>::new_client(
         &eth_rpc_url,
         10,
@@ -110,7 +110,7 @@ async fn setup_node(mut config: NodeConfig) -> Result<mem::Backend> {
     let block = provider
         .get_block(BlockNumber::Number(fork_block_number.into()))
         .await?
-        .ok_or(anyhow!("block not found"))?;
+        .ok_or_else(|| anyhow!("block not found"))?;
 
     env.block.number = fork_block_number.into();
     let fork_timestamp = Some(block.timestamp);
@@ -134,7 +134,7 @@ async fn setup_node(mut config: NodeConfig) -> Result<mem::Backend> {
         fees.set_gas_price(gas_price);
     }
 
-    let block_hash = block.hash.ok_or(anyhow!("No block hash"))?;
+    let block_hash = block.hash.ok_or_else(|| anyhow!("No block hash"))?;
 
     let chain_id = provider.get_chainid().await?.as_u64();
     // need to update the dev signers and env with the chain id
