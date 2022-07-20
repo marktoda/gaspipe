@@ -8,7 +8,7 @@ use foundry_evm::revm::SpecId;
 pub async fn spawn_fork(rpc_url: &str) -> Executor {
     let evm_opts = EvmOpts {
         fork_url: Some(rpc_url.to_string()),
-        memory_limit: 1024 * 256,
+        memory_limit: 32 * 1024 * 1024,
         ..Default::default()
     };
     let env = evm_opts.evm_env().await;
