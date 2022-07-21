@@ -32,6 +32,24 @@ $ curl -X POST -H "content-type: application/json" localhost:8000/estimate -d '
 [{"gas":59963,"reverted":false},{"gas":50056,"reverted": false}] 
 ```
 
+## Performance
+Current average time to estimate the above example: `~1.7s`.
+Local fork caching allows for faster times on subsequent calls against the same block (~2.9s on fresh block, ~1.2s on repeat block).
+```bash
+$ for x in {1..10}; do time curl <estimate>; done
+
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.00s user 0.00s system 0% cpu 2.936 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.01s user 0.00s system 0% cpu 1.223 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.00s user 0.01s system 0% cpu 1.186 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.00s user 0.01s system 0% cpu 1.180 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.00s user 0.00s system 0% cpu 1.286 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.01s user 0.00s system 0% cpu 1.195 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.01s user 0.00s system 0% cpu 1.206 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.00s user 0.01s system 0% cpu 1.176 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.00s user 0.01s system 0% cpu 1.207 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.00s user 0.01s system 0% cpu 2.867 total
+curl -X POST -H "content-type: application/json" localhost:8000/estimate -d   0.01s user 0.00s system 0% cpu 1.213 total
+```
 
 # Future Improvements
 - [ ] Add an RPC eth_estimateGas style endpoint for simpler migration
